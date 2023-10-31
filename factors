@@ -1,32 +1,60 @@
 #!/usr/bin/env python3
 
-import sys
-from sympy import factorint
+"""Factor numbers in a file.
 
-def main(file_path):
-    try:
-        with open(file_path, 'r') as file:
-            lines = file.read().splitlines()
-            for line in lines:
-                number = int(line)
-                if number < 2:
-                    print(f"Skipping {number} as it's not a natural number greater than 1.")
-                    continue
+This script reads a file containing natural numbers and factors each number
+into a product of two smaller numbers. It then prints the factorizations in
+the format "n=p*q" for each number.
 
-                factors = factorint(number)
-                if factors:
-                    factor_pairs = [(p, factors[p]) for p in factors]
-                    print(f"{number} = {' * '.join([f'{p}^{e}' for p, e in factor_pairs])}")
-                else:
-                    print(f"Unable to factorize {number}.")
-    except FileNotFoundError:
-        print(f"File '{file_path}' not found.")
-    except ValueError:
-        print("Invalid input in the file. All lines must contain natural numbers greater than 1.")
+Usage: factors <file>
+where <file> is a file containing natural numbers to factor, one per line.
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: factors <file>")
-    else:
-        file_path = sys.argv[1]
-        main(file_path)
+You can assume that all lines will be valid natural numbers greater than 1,
+and there will be no empty lines, and no space before and after the valid number.
+
+The file will always end with a new line.
+
+Your program should run without any dependency, and it will be killed after 5
+seconds if it hasn’t finished.
+
+Push all your scripts, source code, etc. to your repository.
+
+only run your executable 'factors'.
+
+"""
+
+from sys import argv
+
+
+def open_read_file(file_name):
+
+    """Read numbers from a file and return them as a list."""
+
+    with open(file_name, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+    number_to_factor = []
+    for line in lines:
+        number_to_factor.append(int(line))
+    return number_to_factor
+
+
+def find_and_times(n):
+
+    """Factor a given number n into two smaller numbers and print the result."""
+
+    for i in range(1, n):
+        if n == ((n // i) * i):
+            print("{}={}*{}".format(n, (n // i), i))
+            break
+
+
+def fac_list(ls):
+
+    """Factor each number in the list 'ls'."""
+
+    for i in ls:
+        find_and_times(i)
+
+
+if len(argv) == 2:
+    fac_list(open_read_file(argv[1]))
