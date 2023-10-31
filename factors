@@ -1,32 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-import multiprocessing
-import signal
-
-def factorize(number):
-    factors = []
-    for i in range(2, int(number**0.5) + 1):
-        while number % i == 0:
-            factors.append(i)
-            number //= i
-    if number > 1:
-        factors.append(number)
-    return factors
-
-def factorize_with_timeout(number, timeout):
-    def factorize_wrapper(number, result):
-        result.append(factorize(number))
-
-    result = []
-    process = multiprocessing.Process(target=factorize_wrapper, args=(number, result))
-    process.start()
-    process.join(timeout)
-
-    if process is alive():
-        process.terminate()
-        return None
-    return result[0]
+from sympy import factorint
 
 def main(file_path):
     try:
@@ -38,12 +13,12 @@ def main(file_path):
                     print(f"Skipping {number} as it's not a natural number greater than 1.")
                     continue
 
-                factors = factorize_with_timeout(number, 5)  # 5-second timeout
-                if factors and len(factors) == 2:
-                    p, q = factors
-                    print(f"{number}={p}*{q}")
+                factors = factorint(number)
+                if factors:
+                    factor_pairs = [(p, factors[p]) for p in factors]
+                    print(f"{number} = {' * '.join([f'{p}^{e}' for p, e in factor_pairs])}")
                 else:
-                    print(f"Unable to factorize {number} within the timeout.")
+                    print(f"Unable to factorize {number}.")
     except FileNotFoundError:
         print(f"File '{file_path}' not found.")
     except ValueError:
@@ -55,4 +30,3 @@ if __name__ == "__main__":
     else:
         file_path = sys.argv[1]
         main(file_path)
-
