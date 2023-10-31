@@ -1,37 +1,58 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
-file="$1"
+import sys
+import multiprocessing
+import signal
 
-if [ -z "$file" ]; then
-  echo "Usage: $0 <file>"
-  exit 1
-fi
+def factorize(number):
+    factors = []
+    for i in range(2, int(number**0.5) + 1):
+        while number % i == 0:
+            factors.append(i)
+            number //= i
+    if number > 1:
+        factors.append(number)
+    return factors
 
-if [ ! -f "$file" ]; then
-  echo "File '$file' not found."
-  exit 1
-fi
+def factorize_with_timeout(number, timeout):
+    def factorize_wrapper(number, result):
+        result.append(factorize(number))
 
-while read -r number; do
-  if [[ $number -le 1 ]]; then
-    echo "Skipping $number as it's not a natural number greater than 1."
-    continue
-  fi
+    result = []
+    process = multiprocessing.Process(target=factorize_wrapper, args=(number, result))
+    process.start()
+    process.join(timeout)
 
-  factors=""
-  for ((i = 2; i <= number; i++)); do
-    while ((number % i == 0)); do
-      factors="$factors $i"
-      number=$((number / i))
-    done
-  done
+    if process is alive():
+        process.terminate()
+        return None
+    return result[0]
 
-  if [[ -n "$factors" ]]; then
-    factors=($factors)
-    if (( ${#factors[@]} == 2 )); then
-      echo "$number=${factors[0]}*${factors[1]}"
-    else
-      echo "Unable to factorize $number."
-    fi
-  fi
-done < "$file"
+def main(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            lines = file.read().splitlines()
+            for line in lines:
+                number = int(line)
+                if number < 2:
+                    print(f"Skipping {number} as it's not a natural number greater than 1.")
+                    continue
+
+                factors = factorize_with_timeout(number, 5)  # 5-second timeout
+                if factors and len(factors) == 2:
+                    p, q = factors
+                    print(f"{number}={p}*{q}")
+                else:
+                    print(f"Unable to factorize {number} within the timeout.")
+    except FileNotFoundError:
+        print(f"File '{file_path}' not found.")
+    except ValueError:
+        print("Invalid input in the file. All lines must contain natural numbers greater than 1.")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: factors <file>")
+    else:
+        file_path = sys.argv[1]
+        main(file_path)
+
